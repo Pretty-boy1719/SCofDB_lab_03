@@ -55,22 +55,22 @@ docker compose up -d --build
 ## Порядок выполнения SQL
 ```bash
 # 1) Seed (готовый)
-docker compose exec -T db psql -U postgres -d marketplace -f /sql/01_seed_100k.sql
+docker-compose exec -T db psql -U postgres -d marketplace -f /sql/01_seed_100k.sql
 
 # 2) Диагностика до оптимизаций (заполняется студентом)
-docker compose exec -T db psql -U postgres -d marketplace -f /sql/02_explain_before.sql
+docker-compose exec -T db psql -U postgres -d marketplace -f /sql/02_explain_before.sql
 
 # 3) Индексы (заполняется студентом)
-docker compose exec -T db psql -U postgres -d marketplace -f /sql/03_indexes.sql
+docker-compose exec -T db psql -U postgres -d marketplace -f /sql/03_indexes.sql
 
 # 4) Повторные замеры после индексов (заполняется студентом)
-docker compose exec -T db psql -U postgres -d marketplace -f /sql/04_explain_after_indexes.sql
+docker-compose exec -T db psql -U postgres -d marketplace -f /sql/04_explain_after_indexes.sql
 
 # 5) Партиционирование (заполняется студентом)
-docker compose exec -T db psql -U postgres -d marketplace -f /sql/05_partition_orders.sql
+docker-compose exec -T db psql -U postgres -d marketplace -f /sql/05_partition_orders.sql
 
 # 6) Финальные замеры (заполняется студентом)
-docker compose exec -T db psql -U postgres -d marketplace -f /sql/06_explain_after_partition.sql
+docker-compose exec -T db psql -U postgres -d marketplace -f /sql/06_explain_after_partition.sql
 ```
 
 ## Структура проекта
