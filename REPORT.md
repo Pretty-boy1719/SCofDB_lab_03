@@ -1,9 +1,9 @@
 # Отчёт по лабораторной работе №3
 ## Диагностика и оптимизация маркетплейса
 
-**Студент:** Филатов Илья  
+**Студент:** Киселев Кирилл 
 **Группа:** БПМ-22-ПО-2  
-**Дата:** 13.03.2026
+**Дата:** 18.04.2026
 
 ---
 
@@ -39,12 +39,15 @@ PostgreSQL 16, таблица `orders` без каких-либо дополни
 ### Запрос №1 — Заказы конкретного пользователя (фильтр по `user_id`, сортировка)
 
 ```sql
-SELECT o.id, o.status, o.total_amount, o.created_at
-FROM orders o
-WHERE o.user_id = (
-    SELECT id FROM users WHERE email = 'user00001@example.com'
-)
-ORDER BY o.created_at DESC;
+select 
+  o.id
+  , o.status
+  , o.total_amount
+  , o.created_at
+from orders o
+where 1=1
+  and o.user_id = (select id from users where email = 'user00001@example.com')
+order by o.created_at desc;
 ```
 
 **EXPLAIN ANALYZE:**
@@ -71,12 +74,17 @@ Seq Scan по всей таблице `orders` (100 000 строк). Из 100 00
 ### Запрос №2 — Оплаченные заказы за диапазон дат
 
 ```sql
-SELECT id, user_id, total_amount, created_at
-FROM orders
-WHERE status = 'paid'
-  AND created_at >= '2025-01-01'
-  AND created_at <  '2025-07-01'
-ORDER BY created_at DESC;
+select 
+  id
+  , user_id
+  , total_amount
+  , created_at
+from orders
+where 1=1
+  and "status" = 'paid'
+  and created_at >= '2025-01-01'
+  and created_at <  '2025-07-01'
+order by created_at desc;
 ```
 
 **EXPLAIN ANALYZE:**
@@ -103,15 +111,19 @@ Execution Time: 5.774 ms
 ### Запрос №3 — TOP-10 пользователей по выручке (JOIN + GROUP BY)
 
 ```sql
-SELECT u.id, u.email,
-       COUNT(o.id)                        AS order_count,
-       ROUND(SUM(o.total_amount)::NUMERIC, 2) AS total_revenue
-FROM users u
-JOIN orders o ON o.user_id = u.id
-WHERE o.status IN ('paid', 'completed')
-GROUP BY u.id, u.email
-ORDER BY total_revenue DESC
-LIMIT 10;
+select
+    u.id
+    , u.email,
+    , count(o.id) as order_count
+    , round(sum(o.total_amount)::numeric, 2) as total_revenue
+from users u
+  inner join orders o 
+    on o.user_id = u.id
+where 1=1
+  and o.status IN ('paid', 'completed')
+group by u.id, u.email
+order by total_revenue desc
+limit 10;
 ```
 
 **EXPLAIN ANALYZE:**
@@ -141,13 +153,19 @@ Seq Scan на `orders` (87620 строк после фильтра) + Hash Join 
 ### Запрос №4 — Популярные товары за год (JOIN + GROUP BY)
 
 ```sql
-SELECT oi.product_name, COUNT(*) AS times_ordered, SUM(oi.quantity) AS total_qty
-FROM order_items oi
-JOIN orders o ON o.id = oi.order_id
-WHERE o.created_at >= '2025-01-01' AND o.created_at < '2026-01-01'
-GROUP BY oi.product_name
-ORDER BY times_ordered DESC
-LIMIT 10;
+select
+    oi.product_name
+    , count(*) as times_ordered
+    . sum(oi.quantity) as total_qty
+from order_items oi
+  inner join orders o 
+    on o.id = oi.order_id
+where 1=1
+  and o.created_at >= '2025-01-01'
+  and o.created_at <  '2026-01-01'
+group by oi.product_name
+order by times_ordered desc
+limit 10;
 ```
 
 **EXPLAIN ANALYZE:**

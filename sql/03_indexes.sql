@@ -28,7 +28,7 @@ CREATE INDEX IF NOT EXISTS idx_orders_status_created_at
 -- ============================================================
 -- Индекс 3: order_items(order_id) — BTREE
 --
--- Ускоряет: Q4 (JOIN orders ↔ order_items по order_id),
+-- Ускоряет: Q4 (JOIN orders - order_items по order_id),
 --           а также запросы по деталям заказа.
 -- Без этого индекса каждый JOIN вызывает Seq Scan на ~250 000 строк.
 -- order_id — внешний ключ: PostgreSQL НЕ создаёт индексы по FK автоматически,

@@ -16,50 +16,62 @@ ANALYZE orders_partitioned;
 
 \echo '--- Q1: Заказы пользователя (partitioned) ---'
 EXPLAIN (ANALYZE, BUFFERS)
-SELECT o.id, o.status, o.total_amount, o.created_at
-FROM orders_partitioned o
-WHERE o.user_id = (
-    SELECT id FROM users WHERE email = 'user00001@example.com'
-)
-ORDER BY o.created_at DESC;
+select 
+  o.id
+  , o.status
+  , o.total_amount
+  , o.created_at
+from orders o
+where 1=1
+  and o.user_id = (select id from users where email = 'user00001@example.com')
+order by o.created_at desc;
 
 \echo '--- Q2: Оплаченные заказы за 2025-H1 (partitioned + partition pruning) ---'
 -- Ожидаем: Planner задействует только orders_2025_01 … orders_2025_06 (6 из 25 партиций)
 EXPLAIN (ANALYZE, BUFFERS)
-SELECT id, user_id, total_amount, created_at
-FROM orders_partitioned
-WHERE status = 'paid'
-  AND created_at >= '2025-01-01'
-  AND created_at <  '2025-07-01'
-ORDER BY created_at DESC;
+select 
+  id
+  , user_id
+  , total_amount
+  , created_at
+from orders
+where 1=1
+  and "status" = 'paid'
+  and created_at >= '2025-01-01'
+  and created_at <  '2025-07-01'
+order by created_at desc;
 
 \echo '--- Q3: TOP-10 пользователей по выручке (partitioned) ---'
 EXPLAIN (ANALYZE, BUFFERS)
-SELECT
-    u.id,
-    u.email,
-    COUNT(o.id)                        AS order_count,
-    ROUND(SUM(o.total_amount)::NUMERIC, 2) AS total_revenue
-FROM users u
-JOIN orders_partitioned o ON o.user_id = u.id
-WHERE o.status IN ('paid', 'completed')
-GROUP BY u.id, u.email
-ORDER BY total_revenue DESC
-LIMIT 10;
+select
+    u.id
+    , u.email,
+    , count(o.id) as order_count
+    , round(sum(o.total_amount)::numeric, 2) as total_revenue
+from users u
+  inner join orders o 
+    on o.user_id = u.id
+where 1=1
+  and o.status IN ('paid', 'completed')
+group by u.id, u.email
+order by total_revenue desc
+limit 10;
 
 \echo '--- Q4: Топ-10 товаров за 2025 год (partitioned) ---'
 EXPLAIN (ANALYZE, BUFFERS)
-SELECT
-    oi.product_name,
-    COUNT(*)         AS times_ordered,
-    SUM(oi.quantity) AS total_qty
-FROM order_items oi
-JOIN orders_partitioned o ON o.id = oi.order_id
-WHERE o.created_at >= '2025-01-01'
-  AND o.created_at <  '2026-01-01'
-GROUP BY oi.product_name
-ORDER BY times_ordered DESC
-LIMIT 10;
+select
+    oi.product_name
+    , count(*) as times_ordered
+    . sum(oi.quantity) as total_qty
+from order_items oi
+  inner join orders o 
+    on o.id = oi.order_id
+where 1=1
+  and o.created_at >= '2025-01-01'
+  and o.created_at <  '2026-01-01'
+group by oi.product_name
+order by times_ordered desc
+limit 10;
 
 -- ============================================================
 -- Итоговая сводка: размер каждой партиции
